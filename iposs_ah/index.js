@@ -1,23 +1,54 @@
 import "./style.css";
-import { initParse } from "./parse";
 import { initEvents } from "./modules/events";
 import { initFactory } from "./modules/factory";
 import { initSearch } from "./modules/search";
+import { initPainter } from "./modules/painter";
 import { initWindows } from "./windows";
+import { initParse } from "./parse";
 const _ = QTopo.util;
-console.info(_.dateFormat(new Date(), "yyyy/MM/dd hh:mm:ss"));
+
 window.topo = {
     init: function (iposs) {
-        iposs.useUrlHash = false;//关闭ajax后缀附加hash值
-        console.info(iposs);
+        //处理初始化数据,绑定元素
         initTopo(iposs);
+        //工程,统一管理ajax请求
         initFactory(iposs);
+        //窗口,统一管理窗口开关
         initWindows(iposs);
-        initParse(iposs);
+        //topo事件,注册预定义事件
         initEvents(iposs);
+        //解析器,解析参数匹配QTopo元素
+        initParse(iposs);
+        //绘制,管理画图
+        initPainter(iposs);
+        //特殊搜索窗口初始化
         initSearch(iposs);
+        //组装右键菜单
         const addEvents = QTopo._initMenu(iposs.dom, iposs.stage, iposs.scene, iposs.menus);
         addEvents(iposs.events);
+
+        const params = getParams();
+
+        if (_.notNull(params.searchDevice)) {
+            // const deviceId = params.searchDevice;
+            // iposs.factory.locationDevice(deviceId)
+            //     .then(data => {
+            //         iposs.paintLayer(data);
+            //         scene.map(el => {
+            //             if (el.data('id') == id) {
+            //                 //目标元素居中且选中
+            //                 el.$state.selected = true;
+            //                 scene.moveToNode(el);
+            //                 return false;
+            //             }
+            //         })
+            //     });
+
+
+        } else {
+            //首绘
+            iposs.factory.index().then(data => iposs.paintLayer(data));
+        }
     }
 };
 
@@ -33,7 +64,7 @@ function initTopo(iposs) {
     iposs.scene = scene;
     initComponent(iposs);
     scene.on("mousedrag", function (e) {
-        if (e.target && _.isNode(e.target)) {
+        if (e.target && (_.isNode(e.target) || e.target.$data.type == 'group')) {
             moved.add(e.target);
         }
     });
@@ -104,4 +135,14 @@ function initComponent(iposs) {
             }
         }
     });
+}
+
+function getParams() {
+    const paramArr = location.search.substr(1).split("&"),
+        params = {};
+    paramArr.forEach(p => {
+        p = p.split("=");
+        params[p[0]] = p[1];
+    });
+    return params;
 }

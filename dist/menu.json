@@ -102,11 +102,6 @@
         "type": "event",
         "action": "EventType(TopoEvent_ADD_DEVICE)"
       }
-      , {
-        "name": "网段",
-        "type": "event",
-        "action": "EventType(TopoEvent_ADD_SEGMENT)"
-      }
     ]
   },
   {
@@ -149,7 +144,7 @@
   {
     "name": "添加链接",
     "aweight": "10",
-    "eweight": "110",
+    "eweight": "10",
     "type": "event",
     "item": [
       {

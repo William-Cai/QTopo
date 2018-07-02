@@ -8,12 +8,17 @@ import * as els from "./core/constructor";
 import { initMenu } from "./menu4Demo/controller";
 import { Warning } from "./menu4Demo/Warning";
 
+console.info('%cQTopo loading :', 'color:blue', _.dateFormat(new Date(), "yyyy/MM/dd hh:mm:ss"));
+const INSTANCE = new WeakMap();
 const QTopo = function (dom, config) {
-    let stage = new Stage(dom);
-    if (config && config.background) {
-        stage.background(config.background);
+    if (!INSTANCE.has(dom)) {
+        let stage = new Stage(dom);
+        if (config && config.background) {
+            stage.background(config.background);
+        }
+        INSTANCE.set(dom, stage);
     }
-    return stage;
+    return INSTANCE.get(dom);
 };
 
 Object.assign(QTopo, {

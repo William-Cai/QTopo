@@ -15,15 +15,19 @@
         window.cancelAnimationFrame = (id) => clearTimeout(id);
     }
 }());
-Promise.prototype.finally = function (callback) {
-    const P = this.constructor;
-    return this.then(
-        value => P.resolve(callback()).then(() => value),
-        reason => P.resolve(callback()).then(() => {
-            throw reason
-        })
-    );
-};
+Object.assign(
+    Promise.prototype,{
+        finally(callback) {
+            const P = this.constructor;
+            return this.then(
+                value => P.resolve(callback()).then(() => value),
+                reason => P.resolve(callback()).then(() => {
+                    throw reason
+                })
+            );
+        }
+    }
+);
 
 Set.prototype.filter=function(fn){
     return new Set([...this].filter(fn));

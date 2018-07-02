@@ -206,7 +206,7 @@ class Link extends Element {
                     break;
                 case ANIMATE_TYPE.percent:
                     if (this.$style.animateSpeed.indexOf && this.$style.animateSpeed.indexOf('s') > -1) {
-                        this.$style.animateSpeed=1/(60*this.$style.animateSpeed.substring(0, this.$style.animateSpeed.indexOf('s')));
+                        this.$style.animateSpeed = 1 / (60 * this.$style.animateSpeed.substring(0, this.$style.animateSpeed.indexOf('s')));
                     }
                     this._animate.distance += this.$style.animateSpeed;
                     if (this._animate.distance >= 1) {
@@ -262,14 +262,14 @@ class Link extends Element {
     }
 
     $paintArrow(context, path) {
-        const { arrowSize, arrowOffset, arrowType, arrowDirection, color, alpha } = this.$style;
-        context.fillStyle = "rgba(" + color + "," + alpha + ")";
+        const { arrowSize, arrowOffset, arrowType, arrowDirection, arrowColor, alpha } = this.$style;
+        context.fillStyle = "rgba(" + arrowColor + "," + alpha + ")";
         if (arrowDirection) {
             if (this.$state.showStartArrow) {
-                paint(path[1], path[0]);
+                paint(path.middle || path[1], path[0]);
             }
             if (this.$state.showEndArrow) {
-                paint(path[path.length - 2], path[path.length - 1]);
+                paint(path.middle || path[path.length - 2], path[path.length - 1]);
             }
         } else {
             if (this.$state.showStartArrow) {

@@ -1,15 +1,14 @@
 import "./style.css";
-import {initParse} from "./parse";
+import { initParse } from "./parse";
 import { initEvents } from "./modules/events";
 import { initFactory } from "./modules/factory";
 import { initSearch } from "./modules/search";
 import { initWindows } from "./windows";
 
 const _ = QTopo.util;
-console.info(_.dateFormat(new Date(), "yyyy/MM/dd hh:mm:ss"));
+//又暴露了一个方法
 window.topo = {
     init: function (iposs) {
-        console.info(iposs);
         initTopo(iposs);
         initFactory(iposs);
         initWindows(iposs);
@@ -18,6 +17,7 @@ window.topo = {
         initSearch(iposs);
         const addEvents = QTopo._initMenu(iposs.dom, iposs.stage, iposs.scene, iposs.menus);
         addEvents(iposs.events);
+        console.info(iposs);
     }
 };
 
@@ -60,20 +60,31 @@ function initComponent(iposs) {
         preTargt = null;
     iposs.scene
         .on('mousemove', e => {
-            if (_.isNode(e.target)) {
+            var element = e.target;
+            if (_.isNode(element)) {
                 tips.open(
-                    e.target.$style.textValue,
+                    element.$data.title,
                     e.offsetX, e.offsetY,
                     'top'
                 );
                 clearTimeout(timeoutId);
-            } else if (_.isLink(e.target)) {
-                if (preTargt !== e.target) {
+            } else if (_.isLink(element)) {
+                if (preTargt !== element) {
                     clearTimeout(timeoutId);
+                    var start = element.$path[0],
+                        end = element.$path[1];
                     timeoutId = setTimeout(
                         function () {
-                            iposs.factory.linkCount(e.target.$id)
-                                .then(data => tips.open(data, e.offsetX, e.offsetY, 'top'));
+                            iposs.factory.linkCount(element.$id)
+                                .then(data => {
+                                    tips.open(
+                                        `<div>${start.$data.title}</div>
+                                        <div style=" text-align:center "><i class="icon-arrow-down"></i></div>
+                                        <div style="margin-bottom:10px">${end.$data.title}</div>`
+                                        + _.reduce(data, (value, name) => `<div>${name} : ${value}</div>`)
+                                        ,
+                                        e.offsetX, e.offsetY, 'bottom')
+                                });
                         },
                         1500
                     );

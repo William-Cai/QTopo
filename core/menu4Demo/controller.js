@@ -1,23 +1,23 @@
-import {filterWeight,filterFilter} from "./parse";
-import {doAction,addEvents} from"./action";
+import { filterWeight, filterFilter } from "./parse";
+import { doAction, addEvents } from "./action";
 
-export const initMenu = function (dom, stage,scene, data) {
+export const initMenu = function (dom, stage, scene, data) {
     const addRightMenu = QTopo.initRightMenu({
-        dom, stage:scene, afterFilter(){
+        dom, stage: scene, afterFilter() {
             QTopo._Warning.clear();
         }
     });
-    const addToolBar= QTopo.initToolbar({dom});
+    const addToolBar = QTopo.initToolbar({ dom });
     const configs = filterMenuConfigs(data);
     addRightMenu(initRightMenus(configs.rightMenu, scene));
-    addToolBar(initToolBar(configs.toolBar,scene));
+    addToolBar(initToolBar(configs.toolBar, scene));
     bindDblClick(configs.dbClick, scene);
     return addEvents;
 };
 
 function initRightMenus(configs, scene) {
     let rightMenu;
-    return configs.map(menu=> {
+    return configs.map(menu => {
         rightMenu = {
             name: menu.name,
             click: function (e) {
@@ -32,12 +32,16 @@ function initRightMenus(configs, scene) {
     });
 }
 
-function initToolBar(configs, scene){
-    return configs.map(menu=>{
+function initToolBar(configs, scene) {
+    return configs.map(menu => {
         return {
-            name:menu.name,
-            icon:menu.icon,
-            click(){
+            name: menu.name,
+            icon: menu.icon,
+            active: menu.active,
+            isActive() {
+                return filterFilter(menu, null, scene, false);
+            },
+            click() {
                 doAction(menu, scene);
             }
         }
@@ -76,7 +80,7 @@ function filterDblClickMenu(menuConfigs, scene, target) {
         }
     });
     if (menus.length > 1) {
-        menus.sort((a, b) =>b.depth - a.depth);
+        menus.sort((a, b) => b.depth - a.depth);
     }
     return menus[0];
 };

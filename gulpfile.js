@@ -41,41 +41,42 @@ gulp.task('ready', function (callback) {
 gulp.task('debugger', function (callback) {
     runSequence('dev', "concat-files", callback);
 });
-
 gulp.task('webpack-ready', ready);
 
 
 
-var distPath="./dist/";
+var distPath = "./dist/";
 gulp.task("concat-files", function () {
     cocatFiles(
         ['./public/topo/core.css', './public/topo/iposs.css'],
         ['./public/topo/core.js', './public/topo/iposs.js'],
-        distPath+"topo"
+        distPath + "topo"
     );
-    gulp.src("./iposs/menu.json").pipe(gulp.dest(distPath+'topo/'));
+    gulp.src("./iposs/menu.json").pipe(gulp.dest(distPath + 'topo/'));
 
     cocatFiles(
-        ['./public/topo/core.css', './topo/topo/iposs_sd.css'],
-        ['./public/topo/core.js', './topo/topo/iposs_sd.js'],
-        distPath+"topo_sd"
+        ['./public/topo/core.css', './public/topo/iposs_sd.css'],
+        ['./public/topo/core.js', './public/topo/iposs_sd.js'],
+        distPath + "topo_sd"
     );
-    gulp.src("./iposs_sd/menu.json").pipe(gulp.dest(distPath+'topo_sd/'));
+    gulp.src("./iposs_sd/menu.json").pipe(gulp.dest(distPath + 'topo_sd/'));
 
 
     cocatFiles(
         ['./public/topo/core.css', './public/topo/iposs_ah.css'],
         ['./public/topo/core.js', './public/topo/iposs_ah.js'],
-        distPath+"topo_ah"
+        distPath + "topo_ah"
     );
-    gulp.src("./iposs_ah/menu.json").pipe(gulp.dest(distPath+'topo_ah/'));
+    gulp.src("./iposs_ah/menu.json").pipe(gulp.dest(distPath + 'topo_ah/'));
 });
 
 function cocatFiles(css, js, path) {
+
     gulp.src(css) //- 需要处理的css文件，放到一个字符串数组里
         .pipe(concat('topo.min.css')) //- 合并后的文件名
         .pipe(minifyCss()) //- 压缩处理成一行
         .pipe(gulp.dest(path));
+
     gulp.src(js)
         .pipe(concat('topo.min.js'))
         .pipe(uglify())

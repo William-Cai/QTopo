@@ -38,14 +38,17 @@ const Element = {
         arrowOffset: 0,
         animateColor: "255,255,255",
         animateSpeed: null,
-        animateType:"fixed"
+        animateType: "fixed"
     }),
     Box = newStyle(Element, {
         boxType: "rect",
         size: [32, 32],
         position: [0, 0],
         zIndex: 4,
-        textPosition: ['50%', '100%']
+        textPosition: ['50%', '100%'],
+        textBaseline: "bottom",
+        textAlign: "center",
+        textLineGap: 0
     }),
     Path = newStyle(Box, {
         size: [0, 0],

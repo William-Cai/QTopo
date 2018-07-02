@@ -42,6 +42,7 @@ class SceneTools extends Base {
                 element.$scene = this;
             }
         });
+        this.$state.changedElement = true;
         this.repaint();
         return this;
     };
@@ -122,9 +123,9 @@ class SceneTools extends Base {
                 const { left, right, top, bottom } = this.getBoundary(elements);
                 this.$style.translate = [size[0] / 2 - (left + right) / 2, size[1] / 2 - (top + bottom) / 2];
                 this.repaint();
-                return this;
             }
         }
+        return this;
     }
 
     centerZoom() {
@@ -185,8 +186,8 @@ class SceneTools extends Base {
         let { index, map, indexMap } = this.$children;
         let zIndex, elements, element;
         if (type) {
-            index=indexMap[type];
-            if(!index){
+            index = indexMap[type];
+            if (!index) {
                 return null;
             }
         }
@@ -229,6 +230,38 @@ class SceneTools extends Base {
         }
     };
 
+    moveToDirectLinK(link) {
+        if (link instanceof core.DirectLink && this.has(link)) {
+            const [stageWidth, stageHeight] = this.$stage.size(),
+                from = link.$path[0].$position,
+                to = link.$path[1].$position,
+                center = [
+                    (from[0] + to[0]) / 2,
+                    (from[1] + to[1]) / 2,
+                ],
+                size = [
+                    from[0] - to[0],
+                    from[1] - to[1]
+                ].map(Math.abs);
+
+            this.$style.scale = Math.min(stageWidth / size[0], stageHeight / size[1]) * 0.6;
+            this.center(center);
+
+            flash(link, 5, this);
+            function flash(node, num, scene) {
+                if (num === 0) {
+                    node.$state.selected = false;
+                } else {
+                    node.$state.selected = !node.$state.selected;
+                    setTimeout(function () {
+                        flash(node, num - 1, scene);
+                    }, 500);
+                }
+                scene.repaint();
+            }
+        }
+    }
+
     zoom(scale) {
         if (scale > 0) {
             this.$style.scale = this.$style.scale / scale;
@@ -241,12 +274,48 @@ class SceneTools extends Base {
         return this;
     }
 
+    _zoomByPoint(scale, point) {
+        if (point) {
+            const toCenter = this.transIn(point.x, point.y);
+            this.center(toCenter).zoom(scale);
+            const pointNow = this.transIn(point.x, point.y),
+                newCenter = [
+                    2 * toCenter[0] - pointNow[0],
+                    2 * toCenter[1] - pointNow[1]
+                ];
+
+            this.center(newCenter);
+        }
+        return this;
+    }
+
+    transIn(x, y) {
+        const scale = this.$style.scale,
+            [translateX, translateY] = this.getTranslate();
+        return [
+            (x / scale) - translateX,
+            (y / scale) - translateY
+        ];
+    }
+
+    transOut(x, y) {
+        const scale = this.$style.scale,
+            [translateX, translateY] = this.getTranslate();
+        return [
+            (x + translateX) * scale,
+            (y + translateY) * scale
+        ];
+    }
+
     getDynamic() {
         return this.$stage.$dynamic;
     }
 
     repaint() {
-        this.$stage.repaint();
+        const stage = this.$stage,
+            state = this.$state;
+        stage.repaint();
+        state.changedElement && stage.repaintEagle();
         return this;
     }
 
@@ -365,9 +434,9 @@ class SceneTools extends Base {
 
     addGroup(config) {
         let group
+        group = new core.Group;
+        this.add(group);
         if (config) {
-            group = new core.Group;
-            this.add(group);
             if (_.notNull(config.api)) {
                 if (_.isArray(config.api.position)) {
                     group.$position[0] = config.api.position[0];

@@ -232,15 +232,16 @@ function clone(obj = {}, flag) {
     }
 }
 function cloneEvent(event) {
+    if (event.event) {
+        return Object.assign({}, event);
+    }
     const e = { event };
     [
         "x", "y", "pageX", "pageY", "offsetX", "offsetY", "clientX", "clientY", "screenX", "screenY",
         "ctrlKey", "altKey", "detail", "shiftKey", "keyCode", "button", "target",
         "dragWidth", "dragHeight"
     ].forEach(name => {
-        if (event[name] != null) {
-            e[name] = event[name];
-        }
+        e[name] = event[name];
     });
     return e;
 }

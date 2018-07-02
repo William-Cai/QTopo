@@ -6,9 +6,11 @@ export const initEvents = (iposs) => {
         path = initPath(scene);
 
     let linkCache = {};
+    
     Object.assign(iposs, initPaint(iposs));
     //首绘
     factory.index().then(data => iposs.paintLayer(data));
+
     iposs.events = {
 
         TopoEvent_DEBUG(position, element, properties) {
@@ -35,6 +37,7 @@ export const initEvents = (iposs) => {
         },
 
         TopoEvent_GO_TO(position, element, properties) {
+            console.log(properties,'xx');
             const pid = properties.id;
             if (_.notNull(pid)) {
                 return factory.savePosition().then(() => {
@@ -315,8 +318,8 @@ export const initEvents = (iposs) => {
     }
     function addLink() {
         iposs.confirm(`创建从
-            <span style="color:yellow;">${linkCache.from.$style.textValue}</span>
-            到<span style="color:yellow;">${linkCache.to.$style.textValue}</span>的链路?`)
+            <span style="color:yellow;">${linkCache.from.$data.title}</span>
+            到<span style="color:yellow;">${linkCache.to.$data.title}</span>的链路?`)
             .ok(() => {
                 linkCache.from = linkCache.from.data("id");
                 linkCache.to = linkCache.to.data("id");

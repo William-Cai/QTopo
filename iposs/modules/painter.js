@@ -1,8 +1,8 @@
-
+//这里是绘制页面的代码
 export default iposs => {
     const scene = iposs.scene,
         factory = iposs.factory,
-        windows=iposs.windows,
+        windows = iposs.windows,
         parser = iposs.parser;
     return {
         addGroup,
@@ -32,6 +32,21 @@ export default iposs => {
                         alarmColor: alarm.color,
                         alarmText: alarm.content
                     });
+                    // node.alarm({
+                    //     alarmColor: "",
+                    //     alarmList: [{
+                    //         text: "111",
+                    //         color: "255,0,0"
+                    //     },
+                    //     {
+                    //         text: "111",
+                    //         color: "255, 102, 0"
+                    //     },
+                    //     {
+                    //         text: "111",
+                    //         color: "255,204,0"
+                    //     }]
+                    // });
                 }
             }, "node");
         }

@@ -140,7 +140,7 @@ class Box extends Element {
 
     $paintBorder(context, boundary = this.getBoundary()) {
         if (this.$style.borderWidth > 0) {
-            const { borderWidth, borderRadius, borderColor, borderAlpha } = this.$style;
+            const { borderWidth, borderRadius, borderColor, borderAlpha, borderDash } = this.$style;
             if (0 == borderRadius) {
                 context.beginPath();
                 context.rect(borderWidth / 2 - boundary.width / 2, borderWidth / 2 - boundary.height / 2, boundary.width - borderWidth, boundary.height - borderWidth);
@@ -150,6 +150,9 @@ class Box extends Element {
             }
             context.strokeStyle = "rgba(" + borderColor + "," + borderAlpha + ")";
             context.lineWidth = borderWidth;
+            if (borderDash) {
+                context.setLineDash(borderDash);
+            }
             context.stroke();
         }
         return this;
@@ -157,29 +160,49 @@ class Box extends Element {
 
     $paintText(context, boundary = this.getBoundary()) {
         if (this.$style.textVisible && _.notNull(this.$style.textValue)) {
-            let { textOffset, textPosition, textValue, textAlpha, textSize, textFamily, textColor } = this.$style;
-            context.font = textSize + "px " + textFamily;
-            context.textBaseline = "bottom";
-            context.textAlign = "center";
-            context.fillStyle = "rgba(" + textColor + "," + textAlpha + ")";
+            let { textOffset, textLineGap, textPosition, textValue, textAlpha, textSize, textFamily, textColor, textBaseline, textAlign } = this.$style;
+
             if (!textValue.split) {
                 textValue = textValue + "";
             }
-            const fontWidth = context.measureText("田").width,
-                starX = _.offset(textPosition[0], boundary.width),
-                startY = _.offset(textPosition[1], boundary.height),
-                lines = textValue.split("\n");
+            let lines = textValue.split("\n");
+
+            context.fillStyle = "rgba(" + textColor + "," + textAlpha + ")";
+            context.font = textSize + "px " + textFamily;
+            let fontWidth = context.measureText("田").width;
+            context.textBaseline = textBaseline;
+            context.textAlign = textAlign;
+
+            const [starX, startY] = _.isString(textPosition) ?
+                addjustTextPosition(textPosition, context, lines, fontWidth, textLineGap, boundary) :
+                [_.offset(textPosition[0], boundary.width),
+                _.offset(textPosition[1], boundary.height)];
+
             lines.forEach((line, i) =>
                 context.fillText(
                     line,
                     textOffset[0] + starX - boundary.width / 2,
-                    textOffset[1] + startY + fontWidth * (i + 1) - boundary.height / 2
+                    textOffset[1] + startY + fontWidth * i - boundary.height / 2 + (i != 0 ? textLineGap : 0)
                 )
             );
         }
         return this;
     }
-
 }
 export { Box }
 _.isBox = obj => obj instanceof Box;
+
+
+function addjustTextPosition(type, context, lines, fontSize, textLineGap, boundary) {
+    let startX, startY, len = lines.length;
+    switch (type) {
+        case 'innerCenter':
+            context.textBaseline = "top";
+            context.textAlign = "center";
+            startX = boundary.width * 0.5;
+            startY = boundary.height * 0.5 - fontSize * len * 0.5 - textLineGap * (len - 1) * 0.5;
+            break;
+    }
+
+    return [startX, startY];
+}

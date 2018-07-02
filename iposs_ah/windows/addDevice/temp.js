@@ -19,10 +19,11 @@ function doWithForm(win, iposs, data) {
         data.x = Math.floor(position[0]);
         data.y = Math.floor(position[1]);
         if (data.obj_type == "1") {
-            delete data.resource_type_id;
-            delete data.vendor_id;
-            delete data.device_model;
+            delete data.resourceTypeId;
+            delete data.vendorId;
+            delete data.serial;
         }
+        delete data.vendorId;
         iposs.factory.addDevice(data).then(e=> {
             iposs.events.TopoEvent_REFRESH();
             console.info("添加设备成功");
@@ -30,9 +31,9 @@ function doWithForm(win, iposs, data) {
     }
 }
 function initEvent(factory, win) {
-    const vendor = win.find("select[name=vendor_id]"),
-        modelList = win.find("select[name=device_model]").attr("disabled", true),
-        resList = win.find("select[name=resource_type_id]"),
+    const vendor = win.find("select[name=vendorId]"),
+        modelList = win.find("select[name=serial]").attr("disabled", true),
+        resList = win.find("select[name=resourceTypeId ]"),
         gather = win.find("select[name=gatherId]"),
         type = initTypeSelect(win);
     win.on("window.open", function (e, d) {
@@ -45,9 +46,9 @@ function initEvent(factory, win) {
         factory.resourceList(resList);
         factory.userGather(gather);
         util.setFormInput(win, {
-            device_ip: '',
+            ip: '',
             obj_type: "0",
-            device_name: "",
+            name: "",
             readcommunity: "",
             writecommunity: ""
         });

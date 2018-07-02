@@ -27,12 +27,28 @@ class Scene extends SceneTools {
         Object.assign(this.$state, {
             mouseDown: false,
             draggable: true,
-            dragging: false
+            dragging: false,
+            changedElement: false
         });
     }
 
+    toSceneEvent(event) {
+        const scale = this.$style.scale,
+            [translateX, translateY] = this.getTranslate();
+        const newEvent = _.cloneEvent(event);
+        Object.assign(newEvent, {
+            x: (event.x / scale) - translateX,
+            y: (event.y / scale) - translateY,
+            dragWidth: event.dragWidth / scale,
+            dragHeight: event.dragHeight / scale,
+            target: this.$current,
+            scene: this
+        });
+        return newEvent;
+    }
+
     eventHandler(name, event) {
-        event = toSceneEvent(this, event);
+        event = this.toSceneEvent(event);
         switch (name) {
             case "mousedown":
                 mouseDown(this, event);
@@ -73,6 +89,7 @@ class Scene extends SceneTools {
             });
         });
         context.restore();
+        this.$state.changedElement = false;
         return this;
     };
 
@@ -100,12 +117,6 @@ function mouseUp(scene, event) {
     if (_.notNull(currentElement)) {
         event.target = currentElement;
         currentElement.eventHandler("mouseup", event);
-    }
-}
-function dragScene(scene, event) {
-    if (scene.$state.draggable) {
-        scene.$style.translate[0] = scene._lastTranslate[0] + event.dragWidth;
-        scene.$style.translate[1] = scene._lastTranslate[1] + event.dragHeight;
     }
 }
 function mouseDrag(scene, event) {
@@ -171,20 +182,6 @@ function dblClick(scene, event) {
     }
 }
 //-----------------工具
-function toSceneEvent(scene, event) {
-    const scale = scene.$style.scale,
-        [translateX, translateY] = scene.getTranslate();
-    const newEvent = _.cloneEvent(event);
-    Object.assign(newEvent, {
-        x: (event.x / scale) - translateX,
-        y: (event.y / scale) - translateY,
-        dragWidth: event.dragWidth / scale,
-        dragHeight: event.dragHeight / scale,
-        target: scene.$current,
-        scene
-    });
-    return newEvent
-}
 function addAreaSelect(scene, event) {
     let { map, indexMap } = scene.$children,
         mouseDownEvent = scene.$mouseDown,
@@ -230,11 +227,18 @@ function addAreaSelect(scene, event) {
 function dragElements(scene, event) {
     scene.$selected.forEach(element => {
         if (element.$state.draggable) {
+            scene.$state.changedElement = true;
             const elEvent = _.cloneEvent(event);
             elEvent.target = element;
             element.eventHandler("mousedrag", elEvent);
         }
     });
+}
+function dragScene(scene, event) {
+    if (scene.$state.draggable) {
+        scene.$style.translate[0] = scene._lastTranslate[0] + event.dragWidth;
+        scene.$style.translate[1] = scene._lastTranslate[1] + event.dragHeight;
+    }
 }
 function selectElement(scene, event) {
     const element = scene.searchPoint([event.x, event.y]),

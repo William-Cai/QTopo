@@ -87,7 +87,7 @@ export const initFactory = iposs => {
             return httpCtl({
                 url: url.save,
                 _text: true
-            });
+            },e=>e==0);
         },
         savePosition() {
             let movedObjs = `1;${scene.data("pid")};`;
@@ -158,7 +158,7 @@ export const initFactory = iposs => {
                 data: {
                     linkId: id
                 }
-            }).then(data => _.reduce(data, (value, name) => name + " : " + value + "</br>"));
+            });
         },
         addGroup(data) {
             return httpCtl({

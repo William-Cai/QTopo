@@ -5,7 +5,7 @@ import { initFactory } from "../iposs/modules/factory";
 import { initSearch } from "../iposs/modules/search";
 import { initWindows } from "../iposs/windows";
 const _ = QTopo.util;
-console.info(_.dateFormat(new Date(), "yyyy/MM/dd hh:mm:ss"));
+
 window.topo = {
     init: function (iposs) {
         console.info(iposs);
@@ -55,7 +55,6 @@ function initComponent(iposs) {
             type: 0,
             logo: iposs.imagePath + "logo.png"
         });
-    // bindMouseEvent(iposs, tips);禁用鼠标提示链路信息
     Object.assign(iposs, {
         tips,
         loading,
@@ -84,38 +83,4 @@ function initComponent(iposs) {
             }
         }
     });
-}
-
-function bindMouseEvent(iposs, tips) {
-    let timeoutId = null,
-        preTargt = null;
-    iposs.scene.on('mousemove', e => {
-        if (_.isNode(e.target)) {
-            tips.open(
-                e.target.$style.textValue,
-                e.offsetX, e.offsetY,
-                'top'
-            );
-            clearTimeout(timeoutId);
-        } else if (_.isLink(e.target)) {
-            if (preTargt !== e.target) {
-                clearTimeout(timeoutId);
-                timeoutId = setTimeout(
-                    function () {
-                        iposs.factory.linkCount(e.target.$id)
-                            .then(data => tips.open(data, e.offsetX, e.offsetY, 'top'));
-                    },
-                    1500
-                );
-            }
-        } else {
-            tips.close();
-            clearTimeout(timeoutId);
-        }
-        preTargt = e.target;
-    })
-        .on("mousedown", function () {
-            clearTimeout(timeoutId);
-            tips.close();
-        });
 }

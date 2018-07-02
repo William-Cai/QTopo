@@ -301,21 +301,25 @@
     "dblclick": "toolbar",
     "type": "event",
     "icon": "<i class='icon-external-link'></i>",
-    "action": "EventType(TopoEvent_SET_MODE_SHOW)"
+    "action": "EventType(TopoEvent_SET_MODE_SHOW)",
+    "filter":"${CANVAS:mode}==show"
   },
   {
     "name": "框选",
     "dblclick": "toolbar",
     "type": "event",
     "icon": "<i class='icon-check'></i>",
-    "action": "EventType(TopoEvent_SET_MODE_SELECT)"
+    "action": "EventType(TopoEvent_SET_MODE_SELECT)",
+    "filter":"${CANVAS:mode}==select",
+    "active": "true"
   },
   {
     "name": "编辑",
     "dblclick": "toolbar",
     "type": "event",
     "icon": "<i class='icon-edit'></i>",
-    "action": "EventType(TopoEvent_SET_MODE_EDIT)"
+    "action": "EventType(TopoEvent_SET_MODE_EDIT)",
+    "filter":"${CANVAS:mode}==edit"
   },
   {
     "name": "居中缩放",

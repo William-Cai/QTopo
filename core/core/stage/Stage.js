@@ -2,12 +2,13 @@ import { EventCtrl, Animate, _ } from "../common";
 import { bindCanvas } from "./canvasEvent";
 import { Scene } from "../scene/Scene";
 import { Dynamic } from "./Dynamic";
+import { EagleEye } from "./eagleEye";
 
 const BREATH = _._breath();
 class Stage extends EventCtrl {
     constructor(dom) {
         super();
-        const { $static, $dynamic, $fps, stopResize } = initDom(dom, this);
+        const { $static, $dynamic, $fps, stopResize, resize } = initDom(dom, this);
         if (!$static || !_.isFunction($static.getContext)) {
             throw new Error("can't create canvas, you may need use IE 9+ or chrome;");
         }
@@ -28,13 +29,17 @@ class Stage extends EventCtrl {
             $state: {
                 showFps: false,
                 repaint: true,
-                continue: false
+                continue: false,
+                wheelAble: true
             },
+            resize,
             $current: null,
             $loop: new Animate(() => this.$paint(context, $fps))
         });
+
         this._off = bindCanvas(this, this.$dynamic.$canvas);
         this._stopResize = stopResize;
+        this.$eagleEye = new EagleEye(this);
         this.$loop.start();
 
     }
@@ -107,14 +112,15 @@ class Stage extends EventCtrl {
 
     zoom(scale) {
         this.$scenes.forEach(scene => scene.zoom(scale));
+        return this;
+    }
+
+    _zoomByPoint(scale, event = {}) {
+        this.$scenes.forEach(scene => scene._zoomByPoint(scale, event));
     }
 
     size() {
         return [this.$canvas.width, this.$canvas.height];
-    }
-
-    resize() {
-        this.$canvas.$resize();
     }
 
     getPicture(type, hasDynamic) {
@@ -138,11 +144,33 @@ class Stage extends EventCtrl {
         if (hasDynamic) {
             context.drawImage(this.$dynamic.$canvas, 0, 0);
         }
-        window.open().document.write("<img src='" + canvas.toDataURL(type) + "' alt='from QTopo'/>");
+        // window.open().document.write("<img src='" + canvas.toDataURL(type) + "' alt='from QTopo'/>");
+        return new Promise(function (res, rej) {
+            const img = document.createElement("img");
+            img.src = canvas.toDataURL(type);
+            img.onload = function () {
+                res(img);
+            }
+            img.onerror = function () {
+                rej();
+            }
+        });
     };
 
     repaint() {
         this.$state.repaint = true;
+        return this;
+    }
+
+    repaintEagle() {
+        this.$eagleEye.updateImage();
+        return this;
+    }
+
+    trigger(name, data) {
+        super.trigger(name, data);
+        this.triggerScenes(name, data);
+        return this;
     }
 
     triggerScenes(name, data) {
@@ -151,12 +179,15 @@ class Stage extends EventCtrl {
                 scene.eventHandler(name, data);
             }
         })
+        return this;
     }
 
     $paint(context, $fps) {
         this.$paintFps($fps)
             .$paintStatic(context)
             .$dynamic.$paint();
+        this.$eagleEye.updateView();
+
         //dynamicValues
         this.$breath = BREATH.next().value;
         return this;
@@ -207,7 +238,8 @@ function initDom(dom, stage) {
             } else {
                 window.removeEventListener("resize", resize);
             }
-        }
+        },
+        resize
     };
 
     function resize() {
@@ -224,6 +256,9 @@ function createCanvas(dom) {
         position: "absolute",
         top: 0,
         left: 0,
+        padding: 0,
+        border: "none",
+        margin: 0,
         'user-select': 'none',
         '-webkit-tap-highlight-color': 'rgba(0, 0, 0, 0)'
     });

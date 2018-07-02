@@ -94,7 +94,7 @@ export const filterWeight = function (menu, target, scene) {
     return isInclude(menu.aweight, aweight) && isInclude(menu.eweight, eweight);
 };
 
-export const filterFilter = function (menu, target, scene) {
+export const filterFilter = function (menu, target, scene, defaultResult = true) {
     if (_.notNull(menu.filter)) {
         const input = parseMacro(menu.filter, target, scene, menu.name);
         if (input.includes(") or (")) {
@@ -105,7 +105,7 @@ export const filterFilter = function (menu, target, scene) {
         }
         return extractSepartor(input);
     }
-    return true;
+    return defaultResult;
 };
 
 //--------------------------------path[0][title]
