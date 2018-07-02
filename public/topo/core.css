@@ -704,27 +704,28 @@
     bottom: -5px;
     left: auto;
     top: auto;
-}.qtopo-toolbar_panel{
+}.qtopo-toolbar_panel {
     display: -webkit-inline-box;
     display: -webkit-inline-flex;
     display: -ms-inline-flexbox;
     display: inline-flex;
     list-style: none;
     position: absolute;
-    right:0;
-    top:0;
+    right: 0;
+    top: 0;
     -webkit-background-clip: padding-box;
             background-clip: padding-box;
-    -webkit-box-orient:horizontal;
-    -webkit-box-direction:normal;
-    -webkit-flex-flow:row nowrap;
-        -ms-flex-flow:row nowrap;
-            flex-flow:row nowrap;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -webkit-flex-flow: row nowrap;
+        -ms-flex-flow: row nowrap;
+            flex-flow: row nowrap;
     margin: 0;
     padding: 0;
-    z-index:900;
+    z-index: 900;
 }
-.qtopo-toolbar_item{
+
+.qtopo-toolbar_item {
     display: -webkit-box;
     display: -webkit-flex;
     display: -ms-flexbox;
@@ -737,20 +738,20 @@
     -webkit-align-items: center;
         -ms-flex-align: center;
             align-items: center;
-    width:30px;
-    height:30px;
-    background-color:#012f5d ;
-    color:white;
+    width: 30px;
+    height: 30px;
+    background-color: #012f5d;
+    color: white;
     font-size: 14px;
     text-decoration: none;
+    cursor: pointer;
 }
-.qtopo-toolbar_item:hover{
+
+.qtopo-toolbar_item:hover {
     color: #23527c;
-    cursor:pointer;
 }
-.qtopo-toolbar_item:active{
-    color:white;
-    background-color:#286090;
-    -webkit-box-shadow: 0 0 10px #337ab7;
-            box-shadow: 0 0 10px #337ab7;
+
+.qtopo-toolbar_item:active,.active .qtopo-toolbar_item {
+    color: #337ab7;
+    border: 1px solid #337ab7;
 }
