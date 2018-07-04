@@ -1,17 +1,19 @@
 import { _ } from "./util";
 import { EventCtrl } from "./EventCtrl";
 
+//数据处理基类
 class Base extends EventCtrl {
     constructor() {
         super();
         Object.assign(this, {
             $id: _.makeId(),
-            $state: {},
-            $data: {},
-            $style: {}
+            $state: {},//管理状态
+            $data: {},//管理业务参数
+            $style: {}//管理样式
         });
     }
 
+    //修改id值,该值应该唯一性,方便查找
     id(id) {
         if (_.notNull(id)) {
             this.$id = id;
@@ -54,6 +56,7 @@ class Base extends EventCtrl {
         return this.$style;
     }
 
+    //根据key遍历值,按照 $data $state $style this 的顺序查找,返回第一个匹配的值
     get(key) {
         if (_.notNull(this.$data[key])) {
             return this.$data[key];
@@ -84,6 +87,7 @@ class Base extends EventCtrl {
         return this;
     }
 
+    //导出可根据scene.addXXX 的api还原的json格式
     toJson() {
         return {
             type: this.constructor.name,

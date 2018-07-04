@@ -1,5 +1,6 @@
 import { _ } from "../common";
 
+//动态层
 class Dynamic {
     constructor(dom) {
         Object.assign(this, {
@@ -13,6 +14,7 @@ class Dynamic {
         });
     }
 
+    //添加元素,根据zIndex排序,大的最后绘制
     add(...arr) {
         const { map, index } = this.$children;
         let zIndex;
@@ -69,6 +71,7 @@ class Dynamic {
         return false;
     }
 
+    //调用元素的$paintDynamic执行绘制,传入动态层上下文
     $paint() {
         this.$context.clearRect(0, 0, this.$canvas.width, this.$canvas.height);
         if (this.$paintAble) {

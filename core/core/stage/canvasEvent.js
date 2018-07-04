@@ -6,6 +6,8 @@ const notWebKit = !window.addEventListener,
     on = notWebKit ? (el, name, fn) => el.attachEvent(getName(name), fn) : (el, name, fn) => el.addEventListener(getName(name), fn),
     off = notWebKit ? (el, name, fn) => el.detachEvent(getName(name), fn) : (el, name, fn) => el.removeEventListener(getName(name), fn);
 
+//代理canvas标签上的所有相关事件
+//部分事件控制动静态层的绘制
 export let bindCanvas = function (stage, canvas) {
 
     const gestureApply = new GestureMgr(),

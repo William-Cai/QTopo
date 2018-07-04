@@ -53,6 +53,13 @@ CanvasRenderingContext2D.prototype._star = function (x, y, radius) {
         );
     }
 };
+/**
+ * 简单绘制三角形
+ * @param {*} x 
+ * @param {*} y 
+ * @param {*} width 
+ * @param {*} height 
+ */
 CanvasRenderingContext2D.prototype._triangle= function (x,y,  width, height) {
     this.moveTo(x,y-height/2);
     this.lineTo(x+width/2,y+height/2);
@@ -85,7 +92,11 @@ CanvasRenderingContext2D.prototype._arrow = function ([sx, sy], [ex, ey], radius
         this.stroke();
     }
 };
-
+/**
+ * 简单路径绘制
+ * @param {*} path 每一个成员是一个点数组 0为x 1为y
+ * @param {*} radius 两点间的弧度
+ */
 CanvasRenderingContext2D.prototype._path=function(path, radius) {
     this.moveTo(...path[0]);
     for (var i = 1; i < path.length; i++) {

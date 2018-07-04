@@ -1,11 +1,16 @@
 require("./toolbar.css");
 
+/**
+ * 构造工具条,返回添加工具按钮函数
+ * @param {*} param0 
+ */
 export let toolbar = function ({ dom }) {
     if (QTopo.util.notNull(dom)) {
         const _ = QTopo.util,
-            $data = new WeakMap(),
+            $data = new WeakMap(),//寄存工具栏上的处理函数
             panel = _.$createDom(`<ul class="qtopo-toolbar_panel"></ul>`);
         dom.appendChild(panel);
+        //事件代理在整个工具栏dom上
         _.$on(panel, "click", doAction);
 
         return function (menuArr) {
@@ -25,6 +30,7 @@ export let toolbar = function ({ dom }) {
             }
         }
 
+        //事件执行处理
         function doAction(e) {
             let target = _.$closest(e.target, "li"),
                 menu = $data.get(target);
@@ -32,6 +38,7 @@ export let toolbar = function ({ dom }) {
                 menu.click(menu);
             }
 
+            //过滤激活状态,切换按钮样式
             forEachMenu(li => {
                 menu = $data.get(li);
                 if (menu.isActive()) {

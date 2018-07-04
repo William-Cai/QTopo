@@ -2,6 +2,7 @@ import { _ } from "../core/common";
 
 const MACRO_NULL = "null";
 
+//图层操作模式的权重
 const AWEIGHT = {
     [_.MODE_SELECT]: 1,
     [_.MODE_SHOW]: 1,
@@ -9,6 +10,7 @@ const AWEIGHT = {
     [_.MODE_LINKEDIT]: 100
 };
 
+//元素对象的权重
 const EWEIGHT = {
     'node': 10,
     'segment': 100,
@@ -24,7 +26,10 @@ const EWEIGHT = {
     'ztype.obj': 10000000000000,
     'ztype.grid': 100000000000000
 };
-
+/**
+ * 解析正则对象
+ * @param {*} input 
+ */
 const parseRegExp = input => {
     //console.info("[parseRegExp] original = %s", input);
     if (input == null) {
@@ -42,7 +47,15 @@ const parseRegExp = input => {
     //console.info("[parseRegExp] 解析结果 re=%s flags=%s", re, flags);
     return new RegExp(re, flags);
 };
-
+/**
+ * 解析二进制字符串中 是否包含子串
+ * 例子:
+ * "1000" 只包含 "1000"
+ * "1100" 包含 "1000" 和 "100"
+ * "101" 包含 "100" 和 "1"
+ * @param {*} menuWeight 目标二进制字符串 "110" "10" "1000"
+ * @param {*} weight  需要判断的子串
+ */
 const isInclude = (menuWeight, weight) => {
     if (menuWeight && weight) {
         menuWeight += '';
@@ -52,6 +65,18 @@ const isInclude = (menuWeight, weight) => {
     return true;
 };
 //--------------------------------
+/**
+ * 解析字符串中的${...}格式
+ * 取值替换并返回新的字符串
+ * 从图层或元素对象上取值,替换宏字符串中的关键字
+ * 以CANVAS: 开头则表示从图层上取值
+ * 例子:
+ * 将(${CANVAS:high_light}==true) 字符串转化为 (false==true) 的形式
+ * @param {*} input "(${CANVAS:high_light}==true) or (${CANVAS:high_light_manage}==true)"形式
+ * @param {*} element 触发的元素对象
+ * @param {*} scene 触发的图层
+ * @param {*} menuName 菜单名
+ */
 export const parseMacro = function (input, element, scene, menuName) {
     if (_.notNull(input)) {
         let start = input.indexOf("${"),
@@ -85,6 +110,19 @@ export const parseMacro = function (input, element, scene, menuName) {
     return input;
 };
 
+/**
+ * 根据菜单的权重配置,
+ * 判断当前触发的目标和操作模式的权重是否通过测试
+ * aweight为操作模式权重 
+ * eweight为触发对象权重 
+ * 例子:
+ * 菜单配置    获取到的权重   结论
+ * 1100   包含  100          通过
+ * 1100   不含  10           不通过
+ * @param {*} menu  菜单配置
+ * @param {*} target 触发元素
+ * @param {*} scene 图层
+ */
 export const filterWeight = function (menu, target, scene) {
     let aweight = AWEIGHT[scene.mode()] || 1,
         eweight = EWEIGHT[target.data('elementType')] || 1;
@@ -93,7 +131,17 @@ export const filterWeight = function (menu, target, scene) {
     }
     return isInclude(menu.aweight, aweight) && isInclude(menu.eweight, eweight);
 };
-
+/**
+ * 根据菜单配置中 filter属性 测试是否通过
+ * 例子:
+ * filte : ${CANVAS:go_back}==true
+ * 只有当图层属性中 go_back 为 true
+ * 即 解析结果为 true==true 时 才返回true
+ * @param {*} menu 菜单配置
+ * @param {*} target 触发元素
+ * @param {*} scene 图层
+ * @param {*} defaultResult 默认结果
+ */
 export const filterFilter = function (menu, target, scene, defaultResult = true) {
     if (_.notNull(menu.filter)) {
         const input = parseMacro(menu.filter, target, scene, menu.name);
@@ -109,6 +157,11 @@ export const filterFilter = function (menu, target, scene, defaultResult = true)
 };
 
 //--------------------------------path[0][title]
+/**
+ * 根据宏命令 实现直接取值或嵌套取值
+ * @param {*} target 触发对象
+ * @param {*} input 取值宏命令 如 path[0][title]
+ */
 function getValue(target, input) {
     let start = input.indexOf("["),
         end = -1,
@@ -135,6 +188,10 @@ function getValue(target, input) {
     }
     return value;
 }
+/**
+ * 根据解析结果 转化为js 识别的boolean对象
+ * @param {*} input 如 "false==false" 或则是 "false==false or 1==1"
+ */
 function extractSepartor(input) {
     if (_.notNull(input)) {
         if (input.includes(" and ")) {
@@ -147,7 +204,10 @@ function extractSepartor(input) {
     }
     return false;
 }
-
+/**
+ * 解析单个结论为boolean对象
+ * @param {*} input  只能是 "notNull(null)" "false==false" 等形式
+ */
 function accept(input) {
     if (_.notNull(input)) {
         let array = null,

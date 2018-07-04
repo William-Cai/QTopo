@@ -1,13 +1,20 @@
-import { Element } from "./Element";
-import { _ } from "./util";
-import { Style } from "./style";
+import {
+    Element
+} from "./Element";
+import {
+    _
+} from "./util";
+import {
+    Style
+} from "./style";
 
+//盒子模型 一般元素的基类
 class Box extends Element {
     constructor() {
         super();
         Object.assign(this, {
-            $position: [0, 0],
-            _position: [0, 0]
+            $position: [0, 0], //元素当前位置
+            _position: [0, 0] //暂存元素位置,为了拖拽元素
         });
         Object.assign(this.$state, {
             draggable: true
@@ -15,6 +22,7 @@ class Box extends Element {
         this.$style = Object.create(Style.Box);
     }
 
+    //模仿css定位做的简易api位置设置,相对于视口坐标设定位置
     absolute(css) {
         const [ox, oy] = this.$scene.getOrigin();
         let [sWidth, sHeight] = this.$scene.getStageSize();
@@ -58,6 +66,7 @@ class Box extends Element {
         this.$scene.repaint();
     }
 
+    //方便通过元素的set接口或是scene.addByjson函数的配置参数 api属性处理的定位函数
     position(...arr) {
         if (arr.length > 0) {
             if (_.isNumeric(arr[0])) {
@@ -71,6 +80,7 @@ class Box extends Element {
         return this.$position;
     }
 
+    //计算当前元素的边界坐标
     getBoundary() {
         return {
             left: this.$position[0] - this.$style.size[0] / 2 - this.$style.borderWidth,
@@ -82,21 +92,30 @@ class Box extends Element {
         }
     }
 
+    //简单判断是否存在于视口中
     isInStage() {
-        const { left, top, width, height } = this.getBoundary(),
-            [stageWidth, stageHeight] = this.$scene.getStageSize(),
-            [translateX, translateY] = this.$scene.getTranslate(),
-            scale = this.$scene.$style.scale,
-            [leftX, leftY] = [(left + translateX) * scale, (top + translateY) * scale],
-            [rightX, rightY] = [leftX + width * scale, leftY + height * scale];
+        const {
+            left,
+            top,
+            width,
+            height
+        } = this.getBoundary(), [stageWidth, stageHeight] = this.$scene.getStageSize(), [translateX, translateY] = this.$scene.getTranslate(),
+            scale = this.$scene.$style.scale, [leftX, leftY] = [(left + translateX) * scale, (top + translateY) * scale], [rightX, rightY] = [leftX + width * scale, leftY + height * scale];
         return leftX < stageWidth && leftY < stageHeight && 0 < rightX && 0 < rightY;
     }
 
+    //判断落点是否在元素内
     isInBoundary([targetX, targetY]) {
-        const { left, top, width, height } = this.getBoundary();
+        const {
+            left,
+            top,
+            width,
+            height
+        } = this.getBoundary();
         return targetX > left && targetX < left + width && targetY > top && targetY < top + height;
     }
 
+    //处理事件,节点元素上的链接应该在该元素被删除后也一起删除
     eventHandler(name, event) {
         switch (name) {
             case "remove":
@@ -140,7 +159,13 @@ class Box extends Element {
 
     $paintBorder(context, boundary = this.getBoundary()) {
         if (this.$style.borderWidth > 0) {
-            const { borderWidth, borderRadius, borderColor, borderAlpha, borderDash } = this.$style;
+            const {
+                borderWidth,
+                borderRadius,
+                borderColor,
+                borderAlpha,
+                borderDash
+            } = this.$style;
             if (0 == borderRadius) {
                 context.beginPath();
                 context.rect(borderWidth / 2 - boundary.width / 2, borderWidth / 2 - boundary.height / 2, boundary.width - borderWidth, boundary.height - borderWidth);
@@ -160,7 +185,18 @@ class Box extends Element {
 
     $paintText(context, boundary = this.getBoundary()) {
         if (this.$style.textVisible && _.notNull(this.$style.textValue)) {
-            let { textOffset, textLineGap, textPosition, textValue, textAlpha, textSize, textFamily, textColor, textBaseline, textAlign } = this.$style;
+            let {
+                textOffset,
+                textLineGap,
+                textPosition,
+                textValue,
+                textAlpha,
+                textSize,
+                textFamily,
+                textColor,
+                textBaseline,
+                textAlign
+            } = this.$style;
 
             if (!textValue.split) {
                 textValue = textValue + "";
@@ -174,9 +210,9 @@ class Box extends Element {
             context.textAlign = textAlign;
 
             const [starX, startY] = _.isString(textPosition) ?
-                addjustTextPosition(textPosition, context, lines, fontWidth, textLineGap, boundary) :
-                [_.offset(textPosition[0], boundary.width),
-                _.offset(textPosition[1], boundary.height)];
+                addjustTextPosition(textPosition, context, lines, fontWidth, textLineGap, boundary) : [_.offset(textPosition[0], boundary.width),
+                    _.offset(textPosition[1], boundary.height)
+                ];
 
             lines.forEach((line, i) =>
                 context.fillText(
@@ -189,10 +225,12 @@ class Box extends Element {
         return this;
     }
 }
-export { Box }
+export {
+    Box
+}
 _.isBox = obj => obj instanceof Box;
 
-
+//根据参数计算文字定位相关参数
 function addjustTextPosition(type, context, lines, fontSize, textLineGap, boundary) {
     let startX, startY, len = lines.length;
     switch (type) {

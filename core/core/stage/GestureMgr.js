@@ -1,7 +1,8 @@
 /**
  * Only implements needed gestures for mobile.
  */
-
+//移动端手势事件处理模拟
+//目前仅支持双指缩放
 var GestureMgr = function () {
 
     /**

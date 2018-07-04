@@ -3,6 +3,7 @@ import {MathPath} from "../math/path";
 import {Link}from"./Link";
 import {Style} from "../common/style";
 
+//直线有状态区分,要绘制展开的多条子线
 class DirectLink extends Link {
     constructor() {
         super();

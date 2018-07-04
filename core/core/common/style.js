@@ -1,4 +1,5 @@
 import { _ } from "./util";
+//基本样式统一处理对象,元素的$style属性应以该对象为原型链继承
 const Element = {
     alpha: 1,
     zIndex: 0,

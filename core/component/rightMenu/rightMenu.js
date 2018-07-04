@@ -1,4 +1,5 @@
 require("./rightMenu.css");
+//根据类型返回对应模版
 function TEMP(type, name) {
     switch (type) {
         case "menu":
@@ -11,9 +12,10 @@ function TEMP(type, name) {
             return `<div class='${WRAPNAME}'></div>`;
     }
 }
-
+//寄存每个菜单栏的执行函数,配合事件代理,click事件只绑定在整个右键菜单上
 const $data = new WeakMap();
 
+//菜单对象,可以是右键菜单对象,或者是子菜单
 class Menu {
     constructor(dom) {
         this.parent = dom;
@@ -22,6 +24,7 @@ class Menu {
         this.item = [];
     }
 
+    //添加普通菜单条目
     addItem(options) {
         if (options) {
             const item = QTopo.util.$createDom(TEMP("item", options.name));
@@ -38,6 +41,7 @@ class Menu {
         }
     }
 
+    //添加能够插入普通菜单栏的子菜单
     addSubMenu(options) {
         if (options) {
             const item = QTopo.util.$createDom(TEMP("subMenu", options.name)),
@@ -56,7 +60,7 @@ class Menu {
         }
     }
 }
-
+//生命周期钩子
 const MENU_CONFIG = {
     beforeFilter() {
 
@@ -72,6 +76,14 @@ const MENU_CONFIG = {
     }
 };
 
+/**
+ * 根据配置生成右键菜单,
+ * 参数应包含：
+ * stage: 绑定触发菜单事件,应包含on 函数绑定 mouseup事件,现一般用scene图层对象
+ * dom: 菜单结构插入的dom层,没有 则插入到body内
+ * 返回函数为添加菜单函数
+ * @param {*} config 
+ */
 export let rightMenu = function (config) {
     if (config && config.stage) {
         const dom = config.dom || document.body,
@@ -101,26 +113,33 @@ function bindEvent(menu, stage) {
         menuBody = menu.body,
         menuItems = menu.item;
 
+    //菜单触发事件
     stage.on("mouseup", showRightMenu);
 
+    //事件代理,点击菜单执行函数
     _.$on(menuBody, 'click', menuAction);
 
+    //隐藏菜单事件
     _.$on(menuBody, "mouseleave click", hideRightMenu);
 
     return menu;
 
     function showRightMenu(e) {
+        //只有是右键才触发
         if (e.button === 2) {
             evenCoordin = [e.x, e.y];
             trigger = e.target;
             MENU_CONFIG.beforeFilter(e);
+            //过滤能显示的菜单
             filter(menu, menuItems, trigger);
             MENU_CONFIG.afterFilter(e);
             show(menuBody);
+            //菜单定位
             adjustPosition(e);
         }
     }
 
+    //隐藏整个菜单
     function hideRightMenu(e) {
         hide(menuBody);
         if (openClass) {
@@ -129,6 +148,7 @@ function bindEvent(menu, stage) {
         }
     }
 
+    //执行菜单上的事件
     function menuAction(e) {
         clickFn = $data.get(e.target);
         if (clickFn) {
@@ -141,6 +161,7 @@ function bindEvent(menu, stage) {
         }
     }
 
+    //菜单定位调整,根据菜单展开是否会超出父元素的视口来决定展开方向
     function adjustPosition(e) {
         const ofx = e.offsetX,
             ofy = e.offsetY,
@@ -187,6 +208,7 @@ function bindEvent(menu, stage) {
 
 }
 
+//处理后续添加的菜单栏配置
 function makeRightMenu(father, menus) {
     if (father && QTopo.util.isArray(menus)) {
 
@@ -204,7 +226,10 @@ function makeRightMenu(father, menus) {
 
     }
 }
+
+//根据菜单类型采用不同的隐藏策略
 function filter(parent, items, menuTarget) {
+    //用来收集子项中显示的菜单个数,子菜单内显示菜单为0则子菜单自身不显示,初始化为0
     parent.showedChild = 0;
 
     items.forEach(item => {
@@ -233,6 +258,7 @@ function filterItem(parent, item, menuTarget) {
 }
 function filterSubMenu(parent, subMenu, menuTarget) {
     if (QTopo.util.isFunction(subMenu.filter)) {
+        //当自身过滤条件通过时才检测子项的过滤条件
         if (subMenu.filter(menuTarget)) {
             show(subMenu.body);
             parent.showedChild++;
@@ -241,6 +267,7 @@ function filterSubMenu(parent, subMenu, menuTarget) {
             hide(subMenu.body);
         }
     } else {
+        //当子项全部不显示时,隐藏自身
         filter(subMenu, subMenu.subMenu.item, menuTarget);//递归子项
         if (subMenu.showedChild == 0) {
             hide(subMenu.body);

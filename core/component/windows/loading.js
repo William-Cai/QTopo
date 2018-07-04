@@ -19,6 +19,7 @@ let loadingType = [
         <div class="qtopo-ow-loading_hexagon qtopo-ow-loading_position-7"></div>
     </div>`
 ];
+//加载动画小组件,循环播放
 export let loading = function ({ dom, type, logo }) {
     const _ = QTopo.util;
     if (QTopo.util.notNull(type)) {
@@ -36,6 +37,7 @@ export let loading = function ({ dom, type, logo }) {
                 win.classList.remove("qtopo-component--active");
                 return this;
             },
+            //位置处理简化函数
             position(str) {
                 const domWidth = _.$width(dom),
                     domHeight = _.$height(dom),

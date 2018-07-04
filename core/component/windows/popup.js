@@ -1,3 +1,4 @@
+//公共弹出窗类
 class Popup {
     constructor(dom, title) {
         this.temp = QTopo.util.$createDom(`<div class='${title || ''} qtopo-blackboard'>

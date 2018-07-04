@@ -1,37 +1,42 @@
-import { _ } from "../common";
-import { SceneTools } from "./SceneTools";
+import {
+    _
+} from "../common";
+import {
+    SceneTools
+} from "./SceneTools";
 class Scene extends SceneTools {
     constructor(stage) {
         super();
         Object.assign(this, {
-            $stage: stage,
+            $stage: stage, //topo对象
             $style: {
-                scale: 1,
-                translate: [0, 0],
-                mode: _.MODE_EDIT,
-                visible: true,
-                zoomPadding: 0
+                scale: 1, //当前缩放系数
+                translate: [0, 0], //当前位移大小
+                mode: _.MODE_EDIT, //当前操作模式
+                visible: true, //是否图层可见
+                zoomPadding: 0 //缩放边界预留大小
             },
-            $mouseDown: null,
-            $mouseOver: null,
-            $current: null,
-            $selected: new Set(),
-            $children: {
+            $mouseDown: null, //鼠标点击对象
+            $mouseOver: null, //鼠标悬浮对象
+            $current: null, //当前选中对象
+            $selected: new Set(), //当前选中的对象集合
+            $children: { //图层内所有元素
                 map: new Map(),
                 index: [],
                 indexMap: {}
             },
-            _areaSelect: null,
-            _lastTranslate: [0, 0]
+            _areaSelect: null, //框选绘制函数
+            _lastTranslate: [0, 0] //暂存上一次位移值,用以拖拽计算
         });
         Object.assign(this.$state, {
-            mouseDown: false,
-            draggable: true,
-            dragging: false,
-            changedElement: false
+            mouseDown: false, //可点击
+            draggable: true, //可拖拽
+            dragging: false, //是否正在拖拽
+            changedElement: false //是否增删过元素
         });
     }
 
+    //将一般dom事件转化为topo事件对象,主要用以修改 触发的坐标以及触发的元素对象
     toSceneEvent(event) {
         const scale = this.$style.scale,
             [translateX, translateY] = this.getTranslate();
@@ -47,6 +52,7 @@ class Scene extends SceneTools {
         return newEvent;
     }
 
+    //事件代理函数,针对不同dom事件做图层方面的处理
     eventHandler(name, event) {
         event = this.toSceneEvent(event);
         switch (name) {
@@ -73,14 +79,22 @@ class Scene extends SceneTools {
         return this.trigger(name, event);
     }
 
+    //绘制一个图层
     $paint(context) {
-        const origin = this.getTranslate(), { map, index } = this.$children;
+        const origin = this.getTranslate(),
+            {
+                map,
+                index
+            } = this.$children;
         this.$style.mode === _.MODE_SELECT && _.notNull(this._areaSelect) && this._areaSelect(context);
         context.save();
+        //位移和缩放
         context.scale(this.$style.scale, this.$style.scale);
         context.translate(...origin);
+        //根据zIndex绘制,zIndex小的先绘制,大的后绘制,让zIndex大的覆盖小的图形
         index.forEach(zIndex => {
             map.get(zIndex).forEach(element => {
+                //判断元素是否可绘制,主要判断元素是否在可视范围内,省去不必要的绘制
                 if (this.paintAble(element)) {
                     context.save();
                     element.$paint(context);
@@ -89,17 +103,21 @@ class Scene extends SceneTools {
             });
         });
         context.restore();
+        //如果有元素增删 需要根据这个参数刷新确定是否刷新鹰眼的背景
         this.$state.changedElement = false;
         return this;
     };
 
 }
 _.isScene = obj => obj instanceof Scene;
-export { Scene }
+export {
+    Scene
+}
 //------------------事件处理
 function mouseDown(scene, event) {
     scene.$mouseDown = event;
     switch (scene.$style.mode) {
+        //展示模式,不进行交互,保存当前位移系数,为拖拽做准备
         case _.MODE_SHOW:
             scene._lastTranslate = [...scene.$style.translate];
             break;
@@ -111,6 +129,7 @@ function mouseDown(scene, event) {
             scene._lastTranslate = [...scene.$style.translate];
     }
 }
+//若是框选状态,mouseup代表框选结束,则设为Null
 function mouseUp(scene, event) {
     scene._areaSelect = null;
     let currentElement = scene.$current;
@@ -119,9 +138,11 @@ function mouseUp(scene, event) {
         currentElement.eventHandler("mouseup", event);
     }
 }
+//拖拽事件
 function mouseDrag(scene, event) {
     switch (scene.$style.mode) {
         case _.MODE_SHOW:
+            //移动图层
             dragScene(scene, event);
             break;
         case _.MODE_SELECT:
@@ -130,6 +151,7 @@ function mouseDrag(scene, event) {
                     dragElements(scene, event)
                 }
             } else {
+                //无选中对象则为从空白处框选
                 addAreaSelect(scene, event);
             }
             break;
@@ -141,15 +163,17 @@ function mouseDrag(scene, event) {
             }
     }
 }
+
 function mouseMove(scene, event) {
     if (scene.$style.mode === _.MODE_SHOW) {
         return;
     }
     const mouseOverElement = scene.$mouseOver,
         currentElement = scene.searchPoint([event.x, event.y]);
+    //根据上一次是否有选到对象模拟out over等事件
     if (_.notNull(currentElement)) {
-        if (_.notNull(mouseOverElement)
-            && mouseOverElement !== currentElement) {
+        if (_.notNull(mouseOverElement) &&
+            mouseOverElement !== currentElement) {
             mouseOverElement.eventHandler("mouseout", event);
         }
         scene.$mouseOver = currentElement;
@@ -169,12 +193,14 @@ function mouseMove(scene, event) {
         }
     }
 }
+
 function click(scene, event) {
     if (_.notNull(scene.$current)) {
         event.target = scene.$current;
         scene.$current.eventHandler("click", event);
     }
 }
+
 function dblClick(scene, event) {
     if (_.notNull(scene.$current)) {
         event.target = scene.$current;
@@ -183,14 +209,13 @@ function dblClick(scene, event) {
 }
 //-----------------工具
 function addAreaSelect(scene, event) {
-    let { map, indexMap } = scene.$children,
+    let {
+        map,
+        indexMap
+    } = scene.$children,
         mouseDownEvent = scene.$mouseDown,
         scale = scene.$style.scale,
-        selected = scene.$selected,
-        [dragX, dragY] = [event.offsetX, event.offsetY],
-        [downX, downY] = [mouseDownEvent.offsetX, mouseDownEvent.offsetY],
-        [beginX, beginY] = [dragX >= downX ? downX : dragX, dragY >= downY ? downY : dragY],
-        [width, height] = [Math.abs(event.dragWidth) * scale, Math.abs(event.dragHeight) * scale];
+        selected = scene.$selected, [dragX, dragY] = [event.offsetX, event.offsetY], [downX, downY] = [mouseDownEvent.offsetX, mouseDownEvent.offsetY], [beginX, beginY] = [dragX >= downX ? downX : dragX, dragY >= downY ? downY : dragY], [width, height] = [Math.abs(event.dragWidth) * scale, Math.abs(event.dragHeight) * scale];
     scene._areaSelect = (function (x, y, w, h) {
         return function (context) {
             context.beginPath();
@@ -224,6 +249,7 @@ function addAreaSelect(scene, event) {
         });
     }
 }
+
 function dragElements(scene, event) {
     scene.$selected.forEach(element => {
         if (element.$state.draggable) {
@@ -234,12 +260,14 @@ function dragElements(scene, event) {
         }
     });
 }
+
 function dragScene(scene, event) {
     if (scene.$state.draggable) {
         scene.$style.translate[0] = scene._lastTranslate[0] + event.dragWidth;
         scene.$style.translate[1] = scene._lastTranslate[1] + event.dragHeight;
     }
 }
+
 function selectElement(scene, event) {
     const element = scene.searchPoint([event.x, event.y]),
         selected = scene.$selected;
@@ -264,7 +292,7 @@ function selectElement(scene, event) {
             const set = scene.$children.map.get(element.$style.zIndex);
             if (set) {
                 set.delete(element);
-                set.add(element);//点击置顶
+                set.add(element); //点击置顶
             }
         }
     } else if (!event.ctrlKey) {

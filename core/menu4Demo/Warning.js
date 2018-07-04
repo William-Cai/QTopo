@@ -1,3 +1,4 @@
+//菜单执行过程中的错误收集
 class Warning {
     constructor() {
         this.text = {

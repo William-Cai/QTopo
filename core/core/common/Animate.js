@@ -1,3 +1,4 @@
+//循环动画控制对象
 class Animate {
     constructor(fn) {
         this.stopTag = null;

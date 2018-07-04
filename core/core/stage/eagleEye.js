@@ -1,8 +1,13 @@
-import { _ } from "../common";
+import {
+    _
+} from "../common";
+//鹰眼控制对象
 class EagleEye {
     constructor(stage) {
         const dom = document.createElement('div'),
+            //背景图,只有在topo重绘后刷新
             background = document.createElement('canvas'),
+            //视口框,实时刷新
             view = document.createElement('canvas');
 
         bindEvent(dom, stage, this);
@@ -29,7 +34,9 @@ class EagleEye {
             ratio: 0.2,
             _updateing: false,
             _id: null,
-            stage, background, view,
+            stage,
+            background,
+            view,
             bgCtx: background.getContext('2d'),
             viewCtx: view.getContext('2d'),
             viewInfo: [0, 0, 0, 0],
@@ -43,8 +50,10 @@ class EagleEye {
         this.resize();
     }
 
+    //更新背景图片,图片应是topo的全览
     updateImage() {
         if (this.visible) {
+            //函数节流,最后一次操作后更新
             clearTimeout(this._id);
             this._id = setTimeout(() => {
                 this._updateing = true;
@@ -58,6 +67,7 @@ class EagleEye {
 
                 ctx.clearRect(0, 0, width, height);
                 ctx.save();
+                //有背景画背景
                 if (_.notNull($background.src)) {
                     ctx.drawImage(
                         $background.data,
@@ -65,22 +75,27 @@ class EagleEye {
                         width,
                         height
                     );
-                }
-                else {
+                } else {
                     ctx.fillStyle = $background.color;
                     ctx.fillRect(0, 0, width, height);
                 }
 
-                let translate = [0, 0], scale;
+                //缩放一次图层全览,绘制后还原
+                let translate = [0, 0],
+                    scale;
                 ctx.scale(ratio, ratio);
                 stage.$scenes.forEach(scene => {
+                    //记录缩放前的参数
                     translate[0] = scene.$style.translate[0];
                     translate[1] = scene.$style.translate[1];
                     scale = scene.$style.scale;
+                    //执行缩放全览函数
                     scene.centerZoom();
                     scene.$paint(ctx);
+                    //记录下缩放后的相关参数,用以计算坐标系
                     this.scale = scene.$style.scale;
                     this.translate = scene.getTranslate();
+                    //还原缩放参数
                     scene.$style.scale = scale;
                     scene.$style.translate[0] = translate[0];
                     scene.$style.translate[1] = translate[1];
@@ -92,6 +107,7 @@ class EagleEye {
         return this;
     }
 
+    //更新视口框
     updateView() {
         if (this.visible && !this._updateing) {
             const stage = this.stage,
@@ -110,13 +126,14 @@ class EagleEye {
             ctx.translate(...worldTranslate);
             stage.$scenes.forEach(scene => {
                 this.viewInfo = [...scene.getOrigin(), ...size.map(v => v / scene.$style.scale)];
-                ctx.strokeRect(... this.viewInfo);
+                ctx.strokeRect(...this.viewInfo);
             });
             ctx.restore();
         }
         return this;
     }
 
+    //重新计算大小
     resize() {
         let stage = this.stage,
             dom = this.dom,
@@ -161,6 +178,7 @@ class EagleEye {
         return this;
     }
 
+    //将点击在dom上的坐标转化为鹰眼坐标系内的点
     _translate(x, y) {
         const ratio = this.ratio,
             worldScale = this.scale,
@@ -171,6 +189,7 @@ class EagleEye {
         }
     }
 
+    //点击是否在视口框上
     _isOnView(x, y) {
         const info = this.viewInfo;
         return !(x < info[0] ||
@@ -180,7 +199,9 @@ class EagleEye {
     }
 }
 
-export { EagleEye }
+export {
+    EagleEye
+}
 
 function bindEvent(dom, stage, eagle) {
     let isDown = false,
@@ -222,8 +243,10 @@ function bindEvent(dom, stage, eagle) {
     EVENTS.mouseleave = EVENTS.mouseup;
     _.each(EVENTS, (v, name) => dom.addEventListener(name, v));
 
+    //浏览器兼容,获取鼠标相对dom左上角的坐标
     function getPointOnEl(e) {
-        let x = 0, y = 0;
+        let x = 0,
+            y = 0;
         if (_.isFirefox) {
             x = e.layerX;
             y = e.layerY;
@@ -231,22 +254,16 @@ function bindEvent(dom, stage, eagle) {
             x = e.offsetX;
             y = e.offsetY;
         } else {
-            var box = dom.getBoundingClientRect ? dom.getBoundingClientRect() : { left: 0, top: 0 };
+            var box = dom.getBoundingClientRect ? dom.getBoundingClientRect() : {
+                left: 0,
+                top: 0
+            };
             x = e.clientX - box.left;
             y = e.clientY - box.top;
         }
         return {
             x: x,
             y: y,
-        }
-    }
-
-    function preventDefault(event) {
-        if (event.preventDefault) {
-            event.preventDefault();
-        }
-        else {
-            event.returnValue = false;
         }
     }
 }

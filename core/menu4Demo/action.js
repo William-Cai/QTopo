@@ -1,18 +1,24 @@
-import { parseMacro } from "./parse";
-import { _ } from "../core/common";
-const EVENTS = new Map();
+import {
+    parseMacro
+} from "./parse";
+import {
+    _
+} from "../core/common";
+const EVENTS = new Map(); //寄存事件处理函数
+//关键字
 const EVENT_TYPE = "EventType";
 const EVENT_PROPERTY = "EventProperty";
 
+//根据菜单执行对应动作
 export const doAction = function (menu, scene, position, element) {
     element = element || scene;
     console.debug("触发菜单事件 %o ON %o", menu, element);
     switch (menu.type) {
-        case "url":
+        case "url": //根据配置打开额外页面
             let url = parseMacro(menu.action, element, scene, menu.name).replace(/\$/g, "&");
-            window.open(_.addUrlHash(url,"refresh"));
+            window.open(_.addUrlHash(url, "refresh"));
             break;
-        case "event":
+        case "event": //根据配置执行事件函数,传入所需参数
             parseAction(menu, scene, position, element);
             break;
         default:
@@ -21,7 +27,7 @@ export const doAction = function (menu, scene, position, element) {
     }
     QTopo._Warning.clear();
 };
-
+//添加事件处理函数
 export const addEvents = function (ob) {
     _.each(ob, (handler, name) => {
         if (_.isFunction(handler)) {
@@ -30,6 +36,14 @@ export const addEvents = function (ob) {
     });
 };
 
+/**
+ * 根据菜单配置
+ * 获取所需参数传入对应的事件处理函数
+ * @param {*} menu 
+ * @param {*} scene 
+ * @param {*} position 
+ * @param {*} element 
+ */
 function parseAction(menu, scene, position, element) {
     if (_.notNull(menu.action)) {
         const eventType = getActionValue(EVENT_TYPE, menu.action);
@@ -39,11 +53,13 @@ function parseAction(menu, scene, position, element) {
             const properties = parseValue(propertiesStr),
                 handler = EVENTS.get(eventType);
             handler && handler(position, element, properties);
+            //自动刷新静态图层
             scene.repaint();
         }
     }
 }
 
+//根据关键字截取字符串中的子串
 function getActionValue(key, action) {
     const split = key + "(",
         start = action.indexOf(split);
@@ -54,7 +70,7 @@ function getActionValue(key, action) {
     return action.substring(start + split.length, end);
 }
 
-
+//解析字符串转化为对象
 function parseValue(str) {
     const values = {};
     if (_.notNull(str)) {

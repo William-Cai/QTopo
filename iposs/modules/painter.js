@@ -53,6 +53,7 @@ export default iposs => {
     }
     function paintLayer(data) {
         scene.clear();
+        console.info(parser.parseLayer(data));
         scene.addByJson(parser.parseLayer(data));
         scene.center();
         const alarm = factory.alarm();

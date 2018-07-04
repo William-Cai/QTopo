@@ -1,4 +1,5 @@
 import { _ } from "./util";
+//事件处理基类
 class EventCtrl {
     constructor() {
         this._event = new Map();
@@ -41,6 +42,7 @@ class EventCtrl {
         return this;
     };
 
+    //事件代理函数,防止被off解绑的事件应在此处预先定义
     eventHandler(name, event) {
         return this.trigger(name, event);
     }

@@ -1,3 +1,4 @@
+//进度条组件
 export let progress = function ({ dom }) {
     const _ = QTopo.util;
     let win = dom.querySelector(".qtopo-progress");
@@ -18,6 +19,7 @@ export let progress = function ({ dom }) {
         isShow() {
             return win.classList.contains("qtopo-component--active");
         },
+        //当前进度值,以及提示信息,存在warning时样式为红色
         open({ state, info, warning }={state:100, info:'null', warning:null}) {
             if (_.notNull(info)) {
                 info_div.innerText=info;

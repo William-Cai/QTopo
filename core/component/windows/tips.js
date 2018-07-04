@@ -1,3 +1,4 @@
+//小提示框组件,可根据参数配置相对显示坐标
 export let tips = function ({ dom }) {
     const _ = QTopo.util;
     let win = dom.querySelector(".qtopo-tips"),

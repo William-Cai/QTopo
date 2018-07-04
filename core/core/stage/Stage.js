@@ -15,35 +15,36 @@ class Stage extends EventCtrl {
         const context = $static.getContext("2d");
         Object.assign(this, {
             $dom: dom,
-            $context: context,
-            $canvas: $static,
-            $dynamic: new Dynamic($dynamic),
-            $background: {
+            $context: context,//静态层上下文对象
+            $canvas: $static,//静态层 canvas标签dom对象
+            $dynamic: new Dynamic($dynamic),//动态层控制对象
+            $background: {//背景参数寄存,用以导出图像api时合并背景
                 src: "",
                 color: ""
             },
-            $breath: 0,
-            $mouseDownPoint: [0, 0],
-            $mouseDown: false,
-            $scenes: new Set(),
+            $breath: 0,//动画效果的呼吸参数值,每桢自动更新,方便元素动画计算
+            $mouseDownPoint: [0, 0],//鼠标点击坐标
+            $mouseDown: false,//鼠标是否点击上topo
+            $scenes: new Set(),//图层集合
             $state: {
-                showFps: false,
-                repaint: true,
-                continue: false,
-                wheelAble: true
+                showFps: false,//是否展示fps
+                repaint: true,//是否清空重绘
+                continue: false,//是否一直重绘,不根据repaint判断
+                wheelAble: true//开启鼠标缩放
             },
-            resize,
-            $current: null,
-            $loop: new Animate(() => this.$paint(context, $fps))
+            resize,//自适应计算宽高函数
+            $current: null,//当前选中目标
+            $loop: new Animate(() => this.$paint(context, $fps))//循环执行绘画函数,
         });
 
-        this._off = bindCanvas(this, this.$dynamic.$canvas);
-        this._stopResize = stopResize;
-        this.$eagleEye = new EagleEye(this);
-        this.$loop.start();
+        this._off = bindCanvas(this, this.$dynamic.$canvas);//在canvas标签上绑定的事件解绑函数,用以销毁
+        this._stopResize = stopResize;//解绑 在window上的 resize事件
+        this.$eagleEye = new EagleEye(this);//鹰眼控制对象
+        this.$loop.start();//开始循环绘画
 
     }
 
+    //销毁实例
     destroy() {
         this._off();
         this._stopResize();
@@ -55,6 +56,7 @@ class Stage extends EventCtrl {
         return this;
     }
 
+    //添加一个图层,并返回
     add() {
         let scene = new Scene(this);
         this.$scenes.add(scene);
@@ -62,18 +64,21 @@ class Stage extends EventCtrl {
         return scene;
     };
 
+    //从topo中删除某一个图层,但并未销毁该图层,可以添加到别的topo对象内
     remove(scene) {
         this.$scenes.delete(scene);
         this.repaint();
         return this;
     }
 
+    //清空图层
     clear() {
         this.$scenes.clear();
         this.repaint();
         return this;
     }
 
+    //设置背景,并保存参数
     background(str) {
         if (_.notNull(str)) {
             let extStart = str.lastIndexOf(".");
@@ -110,19 +115,23 @@ class Stage extends EventCtrl {
         }
     }
 
+    //全局缩放
     zoom(scale) {
         this.$scenes.forEach(scene => scene.zoom(scale));
         return this;
     }
 
+    //根据坐标点缩放
     _zoomByPoint(scale, event = {}) {
         this.$scenes.forEach(scene => scene._zoomByPoint(scale, event));
     }
 
+    //获取视口大小
     size() {
         return [this.$canvas.width, this.$canvas.height];
     }
 
+    //导出为图片格式
     getPicture(type, hasDynamic) {
         const canvas = _._canvas(),
             context = _._context();
@@ -157,22 +166,26 @@ class Stage extends EventCtrl {
         });
     };
 
+    //在下一帧执行重绘
     repaint() {
         this.$state.repaint = true;
         return this;
     }
 
+    //通知鹰眼重绘
     repaintEagle() {
         this.$eagleEye.updateImage();
         return this;
     }
 
+    //手动触发事件
     trigger(name, data) {
         super.trigger(name, data);
         this.triggerScenes(name, data);
         return this;
     }
 
+    //触发全部图层事件
     triggerScenes(name, data) {
         this.$scenes.forEach(scene => {
             if (scene.$style.visible) {
@@ -182,6 +195,7 @@ class Stage extends EventCtrl {
         return this;
     }
 
+    //循环绘制函数
     $paint(context, $fps) {
         this.$paintFps($fps)
             .$paintStatic(context)
@@ -189,10 +203,12 @@ class Stage extends EventCtrl {
         this.$eagleEye.updateView();
 
         //dynamicValues
+        //更新动画参数
         this.$breath = BREATH.next().value;
         return this;
     };
 
+    //绘制静态层
     $paintStatic(context) {
         if (this.$state.repaint || this.$state.$continue) {
             context.clearRect(0, 0, ...this.size());

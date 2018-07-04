@@ -28,6 +28,7 @@ class Link extends Element {
         this.$style = Object.create(Style.Link);
     }
 
+    //计算直线与正方形边的交点
     static interWithRect(start, end, bound) {
         if (start && end) {
             let point = MathLine.lineInter(start, end, [bound.left, bound.top], [bound.left, bound.bottom]);
@@ -45,14 +46,17 @@ class Link extends Element {
         return null;
     }
 
+    //获取从start指向end的所有链接
     static directLinks(start, end) {
         return [...start.$outLinks].filter(link => end.$inLinks.has(link));
     }
 
+    //获取start和end之间的所以链接
     static totalLinks(start, end) {
         return Link.directLinks(start, end).concat(Link.directLinks(end, start));
     }
 
+    //设立链接的起始点,主要方便scene.addByJson参数中的api选项
     path(start, end) {
         if (checkLinkAble(this, start, end)) {
             if (this.$path && this.$path.length > 0) {
@@ -69,6 +73,7 @@ class Link extends Element {
         return this;
     }
 
+    //开启链接上小球动画
     animate(config) {
         if (_.notNull(config)) {
             if (_.notNull(config.speed)) {
@@ -91,6 +96,7 @@ class Link extends Element {
         return this;
     }
 
+    //根据链接两端的元素 计算实际的两端坐标点
     getTerminals() {
         const path = [],
             [start, end] = this.$path,
@@ -127,6 +133,7 @@ class Link extends Element {
         return path;
     }
 
+    //计算形成链路的坐标点,子类可以通过修改这个函数实现多种链路,普通链路就是2点之间相连 形成直线
     getPath() {
         if (!this.$state.isLoop) {
             return this.getTerminals();
@@ -134,6 +141,7 @@ class Link extends Element {
         return [];
     }
 
+    //根据百分比获取链路上的点
     getPercentPoint(percent, path = this.getPath(), totalLength = MathPath.totalLength(path)) {
         return MathPath.pointOnPath(percent, path, totalLength).point;
     }

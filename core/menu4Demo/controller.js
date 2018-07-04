@@ -1,6 +1,7 @@
 import { filterWeight, filterFilter } from "./parse";
 import { doAction, addEvents } from "./action";
 
+//结合综合监控的菜单配置规则,生成工具条和右键菜单
 export const initMenu = function (dom, stage, scene, data) {
     const addRightMenu = QTopo.initRightMenu({
         dom, stage: scene, afterFilter() {
@@ -14,7 +15,18 @@ export const initMenu = function (dom, stage, scene, data) {
     bindDblClick(configs.dbClick, scene);
     return addEvents;
 };
-
+/**
+ * 包装右键菜单组件
+ * filter函数返回的boolean判断是否展示该菜单
+ * click为点击后执行函数
+ * name为显示的名称
+ * 
+ * 现根据菜单配置的权重和过滤条件生成filter函数
+ * 点击后根据菜单配置执行事件函数
+ * 
+ * @param {*} configs 
+ * @param {*} scene 
+ */
 function initRightMenus(configs, scene) {
     let rightMenu;
     return configs.map(menu => {
@@ -32,6 +44,11 @@ function initRightMenus(configs, scene) {
     });
 }
 
+/**
+ * 包装工具条
+ * @param {*} configs 
+ * @param {*} scene 
+ */
 function initToolBar(configs, scene) {
     return configs.map(menu => {
         return {
@@ -48,6 +65,7 @@ function initToolBar(configs, scene) {
     });
 }
 
+//绑定图层双击事件
 function bindDblClick(dbClickConfigs, scene) {
     scene.on("dblclick", function (e) {
         const menu = filterDblClickMenu(dbClickConfigs, scene, e.target);
@@ -56,7 +74,7 @@ function bindDblClick(dbClickConfigs, scene) {
         }
     });
 }
-
+//生成菜单过滤函数
 function filterRightMenu(menuConfig, scene) {
     return function (target) {
         target = target || scene;
@@ -68,7 +86,7 @@ function filterRightMenu(menuConfig, scene) {
         return weight && filter;
     };
 }
-
+//过滤菜单配置,找寻可触发的双击菜单
 function filterDblClickMenu(menuConfigs, scene, target) {
     target = target || scene;
     const menus = [];
@@ -85,6 +103,7 @@ function filterDblClickMenu(menuConfigs, scene, target) {
     return menus[0];
 };
 
+//根据菜单类型分类菜单配置
 function filterMenuConfigs(menus) {
     const rightMenu = [],
         toolBar = [],
